@@ -61,6 +61,11 @@ export default async function BrandPage({ searchParams }: Props) {
             Voz de marca <span className="badge">v{voice.version}</span>
           </h2>
           <p className="small muted">Cada cambio crea una versión nueva; cada borrador registra la versión que usó.</p>
+          {editable && (
+            <Link className="btn block" href="/brand/voice" style={{ marginBottom: 12 }}>
+              ✍️ Descubrir mi voz escribiendo
+            </Link>
+          )}
           <input type="hidden" name="brandId" value={brand.id} />
           <fieldset disabled={!editable} style={{ border: 0, padding: 0, margin: 0 }}>
             <div className="grid grid-2">
@@ -68,11 +73,14 @@ export default async function BrandPage({ searchParams }: Props) {
               <Select name="technicalLevel" label="Nivel técnico" value={t.technicalLevel} options={{ basic: 'Básico', intermediate: 'Intermedio', expert: 'Experto' }} />
               <Select name="length" label="Longitud" value={t.length} options={{ short: 'Corta', medium: 'Media', long: 'Larga' }} />
               <Select name="emojis" label="Emojis" value={t.emojis} options={{ none: 'Ninguno', few: 'Pocos', many: 'Muchos' }} />
+              <Select name="addressForm" label="Trato al lector" value={t.addressForm ?? ''} options={{ '': 'Sin preferencia', tu: 'Tú', usted: 'Usted', mixed: 'Mixto' }} />
+              <Select name="exclamations" label="Exclamaciones" value={t.exclamations ?? 'none'} options={{ none: 'Ninguna', some: 'Algunas', many: 'Muchas' }} />
             </div>
-            <ListField name="phrases" label="Expresiones habituales" value={t.phrases} />
+            <ListField name="phrases" label="Expresiones habituales" value={t.phrases} multiline />
             <ListField name="forbiddenWords" label="Palabras prohibidas" value={t.forbiddenWords} />
-            <ListField name="openings" label="Aperturas" value={t.openings} />
-            <ListField name="closings" label="Cierres" value={t.closings} />
+            <ListField name="openings" label="Aperturas" value={t.openings} multiline />
+            <ListField name="closings" label="Cierres" value={t.closings} multiline />
+            <ListField name="hashtags" label="Hashtags habituales" value={t.hashtags ?? []} />
             <div className="field">
               <label htmlFor="ctaPreference">Llamadas a la acción</label>
               <input id="ctaPreference" name="ctaPreference" defaultValue={t.ctaPreference} />
@@ -142,13 +150,17 @@ function Select({ name, label, value, options }: { name: string; label: string; 
   );
 }
 
-function ListField({ name, label, value }: { name: string; label: string; value: string[] }) {
+function ListField({ name, label, value, multiline }: { name: string; label: string; value: string[]; multiline?: boolean }) {
   return (
     <div className="field">
       <label htmlFor={name}>
-        {label} <span className="hint">(separadas por comas)</span>
+        {label} <span className="hint">{multiline ? '(una por línea)' : '(separadas por comas)'}</span>
       </label>
-      <input id={name} name={name} defaultValue={value.join(', ')} />
+      {multiline ? (
+        <textarea id={name} name={name} rows={Math.max(2, value.length)} defaultValue={value.join('\n')} style={{ minHeight: 0 }} />
+      ) : (
+        <input id={name} name={name} defaultValue={value.join(', ')} />
+      )}
     </div>
   );
 }

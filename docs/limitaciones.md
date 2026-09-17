@@ -36,7 +36,7 @@ Estado al cierre de la **Fase 1** (2026-09-16).
 
 - **Fuentes:** solo acontecimientos de demostración. No hay recolección, deduplicación ni agrupación automática todavía (fase 2); tampoco la unión/separación manual de agrupaciones (la tabla `event_corrections` ya existe).
 - **Búsqueda semántica:** no implementada (pgvector en fase 2).
-- **Generación:** plantillas. Sin inferencia de voz a partir de textos (fase 3). La generación automática por reglas tiene su configuración en el modelo (`brands.auto_generation`) pero aún no se ejecuta.
+- **Generación:** plantillas. La voz se deduce de ejercicios de escritura por reglas (tono, trato, emojis, aperturas, cierres, CTA, hashtags). El generador simulado usa esos rasgos, pero no imita el estilo de los ejemplos; eso llega con Claude en la fase 3. La generación automática por reglas tiene su configuración en el modelo (`brands.auto_generation`) pero aún no se ejecuta.
 - **Recursos visuales:** el modelo los soporta (`draft_versions.assets`) pero no hay subida de archivos.
 - **Publicación:** solo X, simulada.
 - **Corrección material de evidencia:** `flagDraftsForEvidenceChange` existe, pero todavía no hay un proceso que versione la evidencia (fase 2).

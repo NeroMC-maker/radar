@@ -8,6 +8,7 @@ export * from './domain/roles';
 export * from './domain/draft-states';
 export * from './domain/time';
 export * from './domain/trend';
+export * from './domain/voice-inference';
 export { contentHash } from './domain/content-hash';
 
 export * from './integrations';

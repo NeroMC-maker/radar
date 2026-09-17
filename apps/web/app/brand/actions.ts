@@ -38,7 +38,8 @@ export async function createBrandAction(fd: FormData) {
     // Cálculo inmediato para que el radar no aparezca vacío la primera vez.
     await radarModule.refreshRecommendations(svc.db, brand.id);
     (await cookies()).set(BRAND_COOKIE, brand.id, { httpOnly: true, sameSite: 'lax', secure: secureCookies(), path: '/' });
-    target = withMessage('/radar', 'ok', 'Marca creada. Conecta tu teléfono en "Teléfono" para recibir propuestas.');
+    // Siguiente paso: que la persona escriba para deducir su voz.
+    target = withMessage('/brand/voice?nueva=1', 'ok', 'Marca creada. Ahora cuéntanos cómo escribes.');
   } catch (e) {
     target = withMessage('/onboarding', 'error', userMessage(e));
   }
@@ -71,6 +72,9 @@ export async function saveVoiceAction(fd: FormData) {
       openings: str(fd, 'openings'),
       closings: str(fd, 'closings'),
       ctaPreference: str(fd, 'ctaPreference'),
+      addressForm: str(fd, 'addressForm') as never,
+      exclamations: str(fd, 'exclamations') as never,
+      hashtags: str(fd, 'hashtags'),
     });
     target = withMessage('/brand', 'ok', `Voz guardada como versión ${v.version}.`);
   } catch (e) {

@@ -8,9 +8,15 @@ import { audit } from './audit';
 import { requireCap, type Actor } from './identity';
 import { enqueueJob } from './jobs';
 
-const list = z
+const splitClean = (items: string[]) => items.map((s) => s.trim()).filter(Boolean).slice(0, 50);
+
+/** Lista separada por comas o saltos de línea. */
+const list = z.union([z.string(), z.array(z.string())]).transform((v) => splitClean(Array.isArray(v) ? v : v.split(/[,\n]/)));
+
+/** Frases que pueden llevar comas ("¡Hola, comunidad!"): una por línea; sin saltos de línea, por comas. */
+const lines = z
   .union([z.string(), z.array(z.string())])
-  .transform((v) => (Array.isArray(v) ? v : v.split(/[,\n]/)).map((s) => s.trim()).filter(Boolean).slice(0, 50));
+  .transform((v) => splitClean(Array.isArray(v) ? v : v.split(v.includes('\n') ? /\r?\n/ : ',')));
 
 export const brandSchema = z.object({
   name: z.string().trim().min(1, 'Escribe el nombre de la marca').max(100),
@@ -143,24 +149,52 @@ export const voiceSchema = z.object({
   technicalLevel: z.enum(['basic', 'intermediate', 'expert']),
   length: z.enum(['short', 'medium', 'long']),
   emojis: z.enum(['none', 'few', 'many']),
-  phrases: list.default([]),
+  phrases: lines.default([]),
   forbiddenWords: list.default([]),
-  openings: list.default([]),
-  closings: list.default([]),
+  openings: lines.default([]),
+  closings: lines.default([]),
   ctaPreference: z.string().trim().max(300).default(''),
+  // '' = sin preferencia (valor vacío de un <select>)
+  addressForm: z
+    .enum(['tu', 'usted', 'mixed', ''])
+    .optional()
+    .transform((v) => v || undefined),
+  hashtags: list.default([]).transform((tags) => tags.map((t) => (t.startsWith('#') ? t : `#${t}`)).slice(0, 10)),
+  exclamations: z
+    .enum(['none', 'some', 'many', ''])
+    .optional()
+    .transform((v) => v || undefined),
 });
 
 /** Cada cambio crea una versión nueva; los borradores guardan la versión que usaron. */
-export async function saveVoice(db: Db, actor: Actor, brandId: string, raw: z.input<typeof voiceSchema>) {
+export async function saveVoice(
+  db: Db,
+  actor: Actor,
+  brandId: string,
+  raw: z.input<typeof voiceSchema>,
+  opts: { samples?: string[]; source?: 'manual' | 'writing_exercise' } = {},
+) {
   requireCap(actor, 'brand.configure');
   const traits = voiceSchema.parse(raw);
+  const samples = (opts.samples ?? []).map((s) => s.trim().slice(0, 2000)).filter((s) => s.length >= 20).slice(0, 10);
   return db.transaction(async (tx) => {
     const prev = await currentVoice(tx, actor, brandId);
     const [v] = await tx
       .insert(voiceVersions)
       .values({ orgId: actor.orgId, brandId, version: prev.version + 1, traits, createdBy: actor.userId })
       .returning();
-    await audit(tx, { orgId: actor.orgId, userId: actor.userId, action: 'voice.updated', entity: 'brand', entityId: brandId, data: { version: v!.version } });
+    // Los textos con los que se validó la voz quedan como ejemplos aprobados de la marca.
+    if (samples.length) {
+      await tx.insert(approvedExamples).values(samples.map((text) => ({ orgId: actor.orgId, brandId, text })));
+    }
+    await audit(tx, {
+      orgId: actor.orgId,
+      userId: actor.userId,
+      action: 'voice.updated',
+      entity: 'brand',
+      entityId: brandId,
+      data: { version: v!.version, source: opts.source ?? 'manual', samples: samples.length },
+    });
     return v!;
   });
 }

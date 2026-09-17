@@ -75,6 +75,15 @@ Registro de decisiones (más reciente al final). Cada una indica contexto, decis
 - Enlaces de notificación: abrir el enlace sin sesión lleva a iniciar sesión y vuelve a la propuesta (`next` validado como ruta interna).
 - **Descartado por ahora:** proveedor externo de identidad (costo y dependencia). Revisar en la fase 5 (recuperación de contraseña, invitaciones).
 
+## D13 · Voz deducida con ejercicios de escritura (2026-09-16)
+
+- **Pedido del propietario:** que la persona escriba para que el sistema aprenda cómo redacta.
+- **Decisión:** pantalla `/brand/voice` con 3 consignas (anunciar una novedad, comentar una tendencia, responder a un cliente) y la opción de pegar posts reales. Aparece como paso 2 al crear una marca.
+- `domain/voice-inference.ts` deduce, **por reglas y sin IA**: tono, trato (tú o usted), emojis, longitud, nivel técnico, exclamaciones, aperturas, cierres, expresiones repetidas, hashtags y tipo de llamada a la acción. Cada rasgo va con la evidencia que lo justifica y hay un índice de confianza.
+- Cumple la sección 7: los rasgos deducidos se **muestran para validar**. Nada se guarda hasta que la persona confirma. Al confirmar se crea una versión nueva de voz y los textos quedan como ejemplos aprobados.
+- Aperturas, cierres y expresiones se editan **una por línea**, porque pueden llevar comas ("¡Hola, comunidad!").
+- **Fase 3:** con Claude se podrá afinar la deducción y usar los ejemplos para imitar el estilo; las reglas quedan como respaldo sin coste.
+
 ## D12 · Puerto 3100 en desarrollo (2026-09-16)
 
 - El puerto 3000 lo usa otro proyecto del propietario (Neurolee). Radar usa 3100.

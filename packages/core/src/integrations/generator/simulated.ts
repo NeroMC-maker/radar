@@ -42,15 +42,19 @@ export class SimulatedGenerator implements ContentGenerator {
             ? `Por qué importa a ${brand.audience}: ${angle}.`
             : '';
     const source = evidence.sources.find((s) => s.isOriginal) ?? evidence.sources[0];
+    const cta = ctaLine(voice.ctaPreference, voice.addressForm);
+    const tags = (voice.hashtags ?? []).slice(0, 2).join(' ');
 
     const parts = [
       [(emoji + opening).trim(), hedge + fact].filter(Boolean).join(' '),
       why,
-      closing,
+      [cta, closing].filter(Boolean).join(' '),
       source?.url ?? '',
     ].filter(Boolean);
 
     let text = parts.join('\n\n');
+    // Los hashtags habituales solo se añaden si caben.
+    if (tags && text.length + tags.length + 1 <= X_LIMIT) text = `${text} ${tags}`;
     if (text.length > X_LIMIT) {
       // X cuenta cada URL como 23 caracteres; se recorta el cuerpo, nunca la fuente.
       const url = source?.url ?? '';
@@ -73,6 +77,16 @@ export class SimulatedGenerator implements ContentGenerator {
       costUsd: 0,
     };
   }
+}
+
+/** Llamada a la acción según la preferencia y el tratamiento de la marca. */
+function ctaLine(preference: string, address: GenerationInput['voice']['addressForm']): string {
+  const usted = address === 'usted';
+  if (/comentar/i.test(preference)) return usted ? '¿Qué opina usted?' : '¿Tú qué opinas?';
+  if (/mensaje/i.test(preference)) return usted ? 'Escríbanos si desea saber más.' : 'Escríbenos si quieres saber más.';
+  if (/seguir/i.test(preference)) return usted ? 'Síganos para más novedades.' : 'Síguenos para más novedades.';
+  if (/compartir|guardar/i.test(preference)) return usted ? 'Guárdelo para después.' : 'Guárdalo para después.';
+  return '';
 }
 
 function defaultAngle(mode: GenerationInput['mode']): string {

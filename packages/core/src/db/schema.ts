@@ -106,6 +106,10 @@ export type VoiceTraits = {
   openings: string[];
   closings: string[];
   ctaPreference: string;
+  /** Tratamiento al lector */
+  addressForm?: 'tu' | 'usted' | 'mixed';
+  hashtags?: string[];
+  exclamations?: 'none' | 'some' | 'many';
 };
 
 export const voiceVersions = pgTable(
