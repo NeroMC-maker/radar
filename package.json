@@ -1,0 +1,26 @@
+{
+  "name": "radar",
+  "private": true,
+  "packageManager": "pnpm@12.3.4",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "db": "tsx scripts/dev-db.ts",
+    "db:migrate": "pnpm --filter @radar/core db:migrate",
+    "db:generate": "pnpm --filter @radar/core db:generate",
+    "seed": "pnpm --filter @radar/core seed",
+    "dev": "concurrently -k -n db,web,worker -c blue,green,magenta \"pnpm db\" \"pnpm --filter @radar/web dev\" \"pnpm --filter @radar/worker dev\"",
+    "test": "pnpm --filter @radar/core test",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.3",
+    "concurrently": "^10.0.5",
+    "dotenv": "^17.2.0",
+    "embedded-postgres": "17.10.0-beta.17",
+    "tsx": "^4.23.13",
+    "typescript": "5.9.3"
+  },
+  "type": "module"
+}
